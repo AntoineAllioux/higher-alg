@@ -235,3 +235,80 @@ module Util where
     → inl p == inl q [ (λ a → P a ⊔ Q a) ↓ e ]
     → p == q [ P ↓ e ]
   ⊔-po-inl idp p q d = –> (inl=inl-equiv p q) d
+
+  pth-lift-equiv : ∀ {i j} {A : Type i} (x y : A) → (lift {i} {j} x == lift y) ≃ (x == y)
+  pth-lift-equiv _ _ = equiv (λ p → ap lower p) (λ p → ap lift p ) (λ p →  (∘-ap lower lift p) ∙ (ap-idf p) ) (λ p → (∘-ap lift lower p) ∙ (ap-idf p))
+
+  ≃= : ∀ {i j} {A : Type i} {B : Type j} {e₁ e₂ : A ≃ B} (p : –> e₁ == –> e₂) → e₁ == e₂
+  ≃= idp = pair= idp (prop-has-all-paths _ _)
+
+  ∘e-assoc : ∀
+    {i j k l}
+    {A : Type i} {B : Type j} {C : Type k} {D : Type l}
+    (h : C ≃ D) (g : B ≃ C) (f : A ≃ B)
+    → (h ∘e g) ∘e f == h ∘e (g ∘e f) 
+  ∘e-assoc h g f = ≃= idp
+
+  module _ {i j} {A : Type i} {B : Type j} (e : A ≃ B) where 
+
+    ∘e-inv-r : e ∘e e ⁻¹ == ide _
+    ∘e-inv-r = ≃= (λ= (<–-inv-r e))
+
+    ∘e-inv-l : e ⁻¹ ∘e e == ide _
+    ∘e-inv-l = ≃= (λ= (<–-inv-l e))
+
+    -- ∘e-unit-r is already defined in HoTT-Agda but only for types having the same level
+    ∘e-unit-r' : e ∘e ide _ == e
+    ∘e-unit-r' = ≃= idp
+
+    ∘e-unit-l : ide _ ∘e e == e
+    ∘e-unit-l = ≃= idp
+
+  module _ {i j k} {A : Type i} {B : Type j} {C : Type k} (e : A ≃ B) where  
+ 
+    ≃-emap-l : (A ≃ C) ≃ (B ≃ C)
+    ≃-emap-l =
+      let f e' = e' ∘e e ⁻¹
+          g e' = e' ∘e e
+          f-g e' = ∘e-assoc _ _ _ ∙ (ap (_∘e_ e') (∘e-inv-r e)) ∙ ∘e-unit-r' e'
+          g-f e' = ∘e-assoc _ _ _ ∙ (ap (_∘e_ e') (∘e-inv-l e)) ∙ ∘e-unit-r' e'
+          
+      in equiv f g f-g g-f
+
+    ≃-emap-r : (C ≃ A) ≃ (C ≃ B)
+    ≃-emap-r  =
+      let f e' = e ∘e e'
+          g e' = e ⁻¹ ∘e e'
+          f-g e' = ! (∘e-assoc _ _ _) ∙ ap (λ r → r ∘e e') (∘e-inv-r e) ∙ ∘e-unit-l e'
+          g-f e' = ! (∘e-assoc _ _ _) ∙ ap (λ r → r ∘e e') (∘e-inv-l e) ∙ ∘e-unit-l e'
+
+      in equiv f g f-g g-f
+
+  pth-yoneda : ∀ {i} {A : Type i} (x y : A) → ((z : A) → (x == z) ≃ (y == z)) ≃ (y == x)
+  pth-yoneda {i} {A} x y = equiv f g f-g g-f
+    where f : ((z : A) → (x == z) ≃ (y == z)) → (y == x)
+          f h = –> (h x) idp
+          
+          g : y == x → ((z : A) → (x == z) ≃ (y == z))
+          g idp _ = ide _
+          
+          f-g : f ∘ g ∼ idf _
+          f-g idp = idp
+          
+          g-f : g ∘ f ∼ idf _
+          g-f h  with (–> (h x) idp) | inspect (–> (h x)) idp 
+          ...         | idp          | (ingraph w) = λ= λ z → ≃= (λ= λ {idp → ! w})
+        
+  Σ-contr-base : ∀ {i j} {A : Type i} (B : A → Type j) (p : is-contr A) → Σ A B ≃ B (contr-center p)
+  Σ-contr-base {A = A} B p = equiv f g f-g g-f
+    where f : Σ A B → B (contr-center p)
+          f (x , y) = transport! _ (contr-path p x) y
+          
+          g : B (contr-center p) → Σ A B
+          g y = contr-center p , y
+   
+          f-g : f ∘ g ∼ idf _
+          f-g y = transport (λ q → transport! _ q y == y) (contr-has-all-paths ⦃ =-preserves-contr p ⦄ idp (contr-path p (contr-center p))) idp
+          
+          g-f : g ∘ f ∼ idf _
+          g-f _ = pair= (contr-path p _) (to-transp!!-↓ _ _ _)
