@@ -3,9 +3,15 @@
 open import HoTT
 open import Util
 open import Polynomial
-open import Substitution
+open import Substitution 
+open import PolyMagma
 
 module PolyMonad where
+
+  -- The slice of a polynomial by a relation
+  _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
+  Op (P // R) f = Σ (InFrame P f) (R f)
+  Param (P // R) ((w , _) , _) = Node P w
 
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (R : PolyRel P) where
 

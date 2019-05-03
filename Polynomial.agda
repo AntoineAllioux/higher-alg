@@ -192,3 +192,16 @@ module Polynomial where
     ↓-Node-there-in H {g} j p {n₀} {n₁} q = ↓-Node-there-in₀ (Decor-== H) j p
       (transport (λ y → n₀ == n₁ [ (λ x → Node P x g) ↓ y ]) (Decor-==-β H j p) q)
 
+  module _ {ℓ} {I : Type ℓ} {P : Poly I} where
+
+    W= : {i : I} (w w' : W P i) → Type ℓ
+    W= (lf i) (lf . i) = Lift ⊤
+    W= (lf _) (nd _) = Lift ⊥
+    W= (nd _) (lf _) = Lift ⊥
+    W= (nd (f , δ)) (nd (f' , δ')) = Σ (f == f') (λ p → δ == δ' [ (λ x → (j : I) (p : Param P x j) → W P j) ↓ p ])
+
+    W=-eq : {i : I} (w w' : W P i) → (W= w w') ≃ (w == w')
+    W=-eq (lf _) (nd _) = equiv (λ {()}) (λ ()) (λ ()) λ {()}
+    W=-eq (nd _) (lf _) = equiv (λ {()}) (λ ()) (λ ()) λ {()}
+    W=-eq (lf _) (lf _) = equiv (λ _ → idp) (λ _ → lift tt) (λ { idp → idp }) λ {(lift tt) → idp}
+    W=-eq (nd (f , δ)) (nd (f' , δ')) = equiv ( λ { (p , q) → ap (λ { (f , δ) → nd (f , δ) }) (pair= p q) }) (λ { idp → (idp , idp)}) (λ { idp → idp }) (λ { (idp , idp) → idp })
