@@ -5,13 +5,9 @@ open import Util
 open import Polynomial
 open import Substitution 
 open import PolyMagma
+open import Slice
 
 module PolyMonad where
-
-  -- The slice of a polynomial by a relation
-  _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
-  Op (P // R) f = Σ (InFrame P f) (R f)
-  Param (P // R) ((w , _) , _) = Node P w
 
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (R : PolyRel P) where
 
@@ -67,20 +63,20 @@ module PolyMonad where
 
   -- An invariant relation induces a magma on its slice
   SlcMgm : ∀ {ℓ} {I : Type ℓ} {P : Poly I} {R : PolyRel P}
-    → SubInvar R → PolyMagma (P // R)
-  μ (SlcMgm {R = R} Ψ) pd = (flatn R pd , flatn-frm R pd) , Ψ pd
+    → SubInvarRel P R → PolyMagma (P // R)
+  μ (SlcMgm {P = P} {R = R} Ψ) pd = (μ-subst P pd , flatn-frm R pd) , Ψ pd
   μ-frm (SlcMgm {R = R} Ψ) pd = bd-frm R pd
 
   _⇙_ : ∀ {ℓ} {I : Type ℓ} {P : Poly I}
-    → (M : PolyMagma P) (Ψ : SubInvar ⟪ M ⟫)
+    → (M : PolyMagma P) (Ψ : SubInvarRel P ⟪ M ⟫)
     → PolyMagma (P // ⟪ M ⟫)
   M ⇙ Ψ = SlcMgm Ψ
-
+  
   record CohStruct {ℓ} {I : Type ℓ} {P : Poly I} (M : PolyMagma P) : Type ℓ where
     coinductive
     field
     
-      Ψ : SubInvar ⟪ M ⟫ 
+      Ψ : SubInvarRel P ⟪ M ⟫ 
       H : CohStruct (M ⇙ Ψ)
 
   open CohStruct public

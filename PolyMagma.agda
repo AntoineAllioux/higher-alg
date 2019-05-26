@@ -29,7 +29,7 @@ module PolyMagma where
 
       γ : {i : I} (f : Op P i) (ϕ : (j : I) → Param P f j → Op P j) → Op P i
       γ-frm : {i : I} (f : Op P i) (ϕ : (j : I) → Param P f j → Op P j)
-        → (j : I) → Σ I (λ k → Σ (Param P f k) (λ p → Param P (ϕ k p) j)) ≃ Param P (γ f ϕ) j 
+        → (j : I) → Σ I (λ k → Σ (Param P f k) (λ p → Param P (ϕ k p) j)) ≃ Param P (γ f ϕ) j
 
   --
   --  Helper functions and path-over principles

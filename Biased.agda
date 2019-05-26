@@ -5,11 +5,12 @@ open import Util
 open import Polynomial
 open import Grafting
 open import Substitution
+open import PolyMagma
 open import PolyMonad
 open import WPaths
 
 module Biased where
-
+{-
   record BiasedMgm {ℓ} {I : Type ℓ} (P : Poly I) : Type ℓ where
     field
 
@@ -19,7 +20,7 @@ module Biased where
       γ : {i : I} (f : Op P i) (ϕ : (j : I) → Param P f j → Op P j) → Op P i
       γ-frm : {i : I} (f : Op P i) (ϕ : (j : I) → Param P f j → Op P j)
         → (j : I) → Σ I (λ k → Σ (Param P f k) (λ p → Param P (ϕ k p) j)) ≃ Param P (γ f ϕ) j 
-
+-}
   --
   --  Helper functions and path-over principles
   --
@@ -27,7 +28,7 @@ module Biased where
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (B : BiasedMgm P) where
 
     open BiasedMgm B
-
+{-
     γ-frm-to : {i j : I} {f : Op P i} {ϕ : (j : I) → Param P f j → Op P j}
       → Σ I (λ k → Σ (Param P f k) (λ p → Param P (ϕ k p) j)) → Param P (γ f ϕ) j 
     γ-frm-to kpq = –> (γ-frm _ _ _) kpq
@@ -78,7 +79,7 @@ module Biased where
   --
   --  Laws for a Biased Magma
   --
-
+-}
   record BiasedLaws {ℓ} {I : Type ℓ} (P : Poly I) (B : BiasedMgm P) : Type ℓ where
 
     open BiasedMgm B
@@ -116,7 +117,7 @@ module Biased where
   module _ {ℓ} {I : Type ℓ} (P : Poly I) (B : BiasedMgm P) where
 
     open BiasedMgm B
-
+{-
     μ-bsd : {i : I} → W P i → Op P i
     μ-bsd (lf i) = η i
     μ-bsd (nd (f , ϕ)) = γ f (λ j p → μ-bsd (ϕ j p))
@@ -165,75 +166,76 @@ module Biased where
     BsdMgm : PolyMagma P
     μ BsdMgm = μ-bsd
     μ-frm BsdMgm = μ-bsd-frm
-
+-}
     module _ (L : BiasedLaws P B) where
 
       private
-        R = ⟪ BsdMgm ⟫ 
+        R = ⟪ BsdMgm B ⟫ 
 
       open BiasedLaws L
+      open BiasedMgm B
 
       μ-graft-inv : {i : I} (w : W P i)
         → (ψ : ∀ j → Leaf P w j → W P j)
-        → μ-bsd (graft P w ψ) ==
-          γ (μ-bsd w) (λ j p → μ-bsd (ψ j (<– (μ-bsd-frm w j) p)))
+        → μ-bsd B (graft P w ψ) ==
+          γ B (μ-bsd B w) (λ j p → μ-bsd B (ψ j (<– (μ-bsd-frm B w j) p)))
       μ-graft-inv (lf i) ψ =
-        let ψ' j p = μ-bsd (ψ j (<– (μ-bsd-frm (lf i) j) p))
-        in ap (λ q → μ-bsd (ψ i q)) (! (<–-inv-l (η-frm i i) idp)) ∙ unit-r ψ'  
+        let ψ' j p = μ-bsd B (ψ j (<– (μ-bsd-frm B (lf i) j) p))
+        in ap (λ q → μ-bsd B (ψ i q)) (! (<–-inv-l (η-frm B i i) idp)) ∙ unit-r ψ'  
       μ-graft-inv (nd (f , ϕ)) ψ = 
         let ih j p = μ-graft-inv (ϕ j p) (λ k l → ψ k (j , p , l))
-            ϕ' j p = μ-bsd (ϕ j p)
-            ψ' j kpq = let (k , p , q) = kpq in μ-bsd (ψ j (k , p , <– (μ-bsd-frm (ϕ k p) j) q))
-        in ap (γ f) (Decor-== P ih) ∙ assoc f ϕ' ψ'
-        -- in γ f (λ j p → μ-bsd (graft P (ϕ j p) (λ k l → ψ k (j , p , l))))
-        --      =⟨ ap (γ f) (Decor-== P ih) ⟩
-        --    γ f (λ j p → γ (μ-bsd (ϕ j p)) (λ k q → μ-bsd (ψ k (j , p , <– (μ-bsd-frm (ϕ j p) k) q))))
+            ϕ' j p = μ-bsd B (ϕ j p)
+            ψ' j kpq = let (k , p , q) = kpq in μ-bsd B (ψ j (k , p , <– (μ-bsd-frm B (ϕ k p) j) q))
+        in ap (γ B f) (Decor-== P ih) ∙ assoc f ϕ' ψ'
+        -- in γ B f (λ j p → μ-bsd B (graft P (ϕ j p) (λ k l → ψ k (j , p , l))))
+        --      =⟨ ap (γ B f) (Decor-== P ih) ⟩
+        --    γ B f (λ j p → γ B (μ-bsd B (ϕ j p)) (λ k q → μ-bsd B (ψ k (j , p , <– (μ-bsd B-frm (ϕ j p) k) q))))
         --      =⟨ assoc f ϕ' ψ' ⟩
-        --    γ (γ f (λ j p → μ-bsd (ϕ j p))) (λ j p → μ-bsd (ψ j (<– (μ-bsd-frm (nd (f , ϕ)) j) p))) ∎
+        --    γ B (γ B f (λ j p → μ-bsd B (ϕ j p))) (λ j p → μ-bsd B (ψ j (<– (μ-bsd B-frm (nd (f , ϕ)) j) p))) ∎
 
       μ-graft-lf-param : {i : I} (w : W P i)
         → (ψ : ∀ j → Leaf P w j → W P j)
         → (j : I) (l : Leaf P (graft P w ψ) j)
-        → Param P (γ (μ-bsd w) (λ j p → μ-bsd (ψ j (<– (μ-bsd-frm w j) p)))) j
+        → Param P (γ B (μ-bsd B w) (λ j p → μ-bsd B (ψ j (<– (μ-bsd-frm B w j) p)))) j
       μ-graft-lf-param w ψ j l = 
         let (k , l₀ , l₁) = <– (graft-leaf-eqv P w ψ j) l
-        in γ-frm-to B (k , –> (μ-bsd-frm w k) l₀ ,
-          transport! (λ x → Param P (μ-bsd (ψ k x)) j)
-                     (<–-inv-l (μ-bsd-frm w k) l₀)
-                     (–> (μ-bsd-frm (ψ k l₀) j) l₁))
+        in γ-frm-to B (k , –> (μ-bsd-frm B w k) l₀ ,
+          transport! (λ x → Param P (μ-bsd B (ψ k x)) j)
+                     (<–-inv-l (μ-bsd-frm B w k) l₀)
+                     (–> (μ-bsd-frm B (ψ k l₀) j) l₁))
 
       μ-graft-lf-inv : {i : I} (w : W P i)
         → (ψ : ∀ j → Leaf P w j → W P j)
         → (j : I) (l : Leaf P (graft P w ψ) j)
-        → –> (μ-bsd-frm (graft P w ψ) j) l == μ-graft-lf-param w ψ j l
+        → –> (μ-bsd-frm B (graft P w ψ) j) l == μ-graft-lf-param w ψ j l
             [ (λ x → Param P x j) ↓ μ-graft-inv w ψ ]
       μ-graft-lf-inv (lf i) ψ j l =
-        let ψ' j p = μ-bsd (ψ j (<– (μ-bsd-frm (lf i) j) p))
-        in ↓-ap-in (λ x → Param P x j) (λ q → μ-bsd (ψ i q))
-                   (to-transp!-↓ (λ x → Param P (μ-bsd (ψ i x)) j)
-                                 (<–-inv-l (μ-bsd-frm (lf i) i) idp)
-                                 (–> (μ-bsd-frm (ψ i idp) j) l)) ∙ᵈ
-           unit-r-frm ψ' j (transport! (λ pth → Param P (μ-bsd (ψ i pth)) j)
-                                       (<–-inv-l (μ-bsd-frm (lf i) i) idp)
-                                       (–> (μ-bsd-frm (ψ i idp) j) l)) 
+        let ψ' j p = μ-bsd B (ψ j (<– (μ-bsd-frm B (lf i) j) p))
+        in ↓-ap-in (λ x → Param P x j) (λ q → μ-bsd B (ψ i q))
+                   (to-transp!-↓ (λ x → Param P (μ-bsd B (ψ i x)) j)
+                                 (<–-inv-l (μ-bsd-frm B (lf i) i) idp)
+                                 (–> (μ-bsd-frm B (ψ i idp) j) l)) ∙ᵈ
+           unit-r-frm ψ' j (transport! (λ pth → Param P (μ-bsd B (ψ i pth)) j)
+                                       (<–-inv-l (μ-bsd-frm B (lf i) i) idp)
+                                       (–> (μ-bsd-frm B (ψ i idp) j) l)) 
   
       -- I think this could be significantly cleaned up ...
       μ-graft-lf-inv (nd (f , ϕ)) ψ j (k , p , l) =
         let ih = μ-graft-lf-inv (ϕ k p) (λ k' l → ψ k' (k , p , l)) j l
-            ϕ' j p = μ-bsd (ϕ j p)
-            ψ' j kpq = let (k , p , q) = kpq in μ-bsd (ψ j (k , p , <– (μ-bsd-frm (ϕ k p) j) q))
+            ϕ' j p = μ-bsd B (ϕ j p)
+            ψ' j kpq = let (k , p , q) = kpq in μ-bsd B (ψ j (k , p , <– (μ-bsd-frm B (ϕ k p) j) q))
             (k₀ , l₀ , l₁) = <– (graft-leaf-eqv P (ϕ k p) (λ k' l' → ψ k' (k , p , l')) j) l
-            p₀ = –> (μ-bsd-frm (ϕ k p) k₀) l₀
-            p₁ = –> (μ-bsd-frm (ψ k₀ (k , p , l₀)) j) l₁
+            p₀ = –> (μ-bsd-frm B (ϕ k p) k₀) l₀
+            p₁ = –> (μ-bsd-frm B (ψ k₀ (k , p , l₀)) j) l₁
 
-            pth₀ = μ-bsd-frm-from-to (ϕ k p) k₀ l₀
-            pth₁ = <–-inv-l (γ-frm f ϕ' k₀) (k , p , p₀)
+            pth₀ = μ-bsd-frm-from-to B (ϕ k p) k₀ l₀
+            pth₁ = <–-inv-l (γ-frm B f ϕ' k₀) (k , p , p₀)
 
-            Q x = Param P (μ-bsd (ψ k₀ x)) j
+            Q x = Param P (μ-bsd B (ψ k₀ x)) j
 
-            t : Σ I (λ k₁ → Σ (Param P f k₁) (λ p₂ → Param P (μ-bsd (ϕ k₁ p₂)) k₀)) →
+            t : Σ I (λ k₁ → Σ (Param P f k₁) (λ p₂ → Param P (μ-bsd B (ϕ k₁ p₂)) k₀)) →
                 Σ I (λ k₁ → Σ (Param P f k₁) (λ p₂ → Leaf P (ϕ k₁ p₂) k₀))
-            t x = let (k' , p' , q') = x in (k' , p' , <– (μ-bsd-frm (ϕ k' p') k₀) q')
+            t x = let (k' , p' , q') = x in (k' , p' , <– (μ-bsd-frm B (ϕ k' p') k₀) q')
 
             s : Leaf P (ϕ k p) k₀  → Σ I (λ k₁ → Σ (Param P f k₁) (λ p₂ → Leaf P (ϕ k₁ p₂) k₀))
             s x = k , p , x
@@ -259,15 +261,15 @@ module Biased where
 
       μ-subst-invar : {i : I} (w : W P i)
         → (κ : (g : Ops P) → Node P w g → Op (P // R) g)
-        → μ-bsd (subst P w (λ g n → fst (κ g n))) == μ-bsd w
+        → μ-bsd B (subst P w (λ g n → fst (κ g n))) == μ-bsd B w
 
       μ-subst-inv-lem : {i : I} (f : Op P i) (ϕ : Decor P f (W P))
         → (w : Op (P // R) (i , f))
         → (κ : (g : Ops P) → Node P (nd (f , ϕ)) g → Op (P // R) g)
-        → μ-bsd (graft P (fst (fst w))
+        → μ-bsd B (graft P (fst (fst w))
                   (λ j l → subst P (ϕ j (–> (snd (fst w) j) l))
                   (λ g n → fst (κ g (inr (j , –> (snd (fst w) j) l , n)))))) ==
-          γ f (λ j p → μ-bsd (ϕ j p))
+          γ B f (λ j p → μ-bsd B (ϕ j p))
 
       μ-subst-invar (lf i) κ = idp
       μ-subst-invar (nd (f , ϕ)) κ =
@@ -276,32 +278,32 @@ module Biased where
       μ-subst-inv-lem ._ ϕ ((w , ._) , idp) κ = 
         let κp j p g n = κ g (inr (j , p , n))
             ψp j p = subst P (ϕ j p) (λ g n → fst (κp j p g n))
-            ψ j l = ψp j (–> (μ-bsd-frm w j) l)
-            ih j p = ap (λ x → μ-bsd (ψp j x)) (<–-inv-r (μ-bsd-frm w j) p) ∙ μ-subst-invar (ϕ j p) (κp j p)
-         in μ-graft-inv w ψ ∙ ap (γ (μ-bsd w)) (Decor-== P ih)
-        -- in μ-bsd (graft P w ψ) 
+            ψ j l = ψp j (–> (μ-bsd-frm B w j) l)
+            ih j p = ap (λ x → μ-bsd B (ψp j x)) (<–-inv-r (μ-bsd-frm B w j) p) ∙ μ-subst-invar (ϕ j p) (κp j p)
+         in μ-graft-inv w ψ ∙ ap (γ B (μ-bsd B w)) (Decor-== P ih)
+        -- in μ-bsd B (graft P w ψ) 
         --      =⟨ μ-graft-inv w ψ ⟩
-        --    γ (μ-bsd w) (λ j p → μ-bsd (ψp j (–> (μ-bsd-frm w j) (<– (μ-bsd-frm w j) p))))
-        --      =⟨ λ= (λ j → λ= (λ p → ih j p)) |in-ctx (λ x → γ (μ-bsd w) x) ⟩ 
-        --    γ (μ-bsd w) (λ j p → μ-bsd (ϕ j p)) ∎
+        --    γ B (μ-bsd B w) (λ j p → μ-bsd B (ψp j (–> (μ-bsd-frm B w j) (<– (μ-bsd-frm B w j) p))))
+        --      =⟨ λ= (λ j → λ= (λ p → ih j p)) |in-ctx (λ x → γ B (μ-bsd B w) x) ⟩ 
+        --    γ B (μ-bsd B w) (λ j p → μ-bsd B (ϕ j p)) ∎
 
 
       -- Yeah, this needs some serious cleanup ...
       μ-lf-invar : {i : I} (w : W P i)
         → (κ : (g : Ops P) → Node P w g → Op (P // R) g)
         → (j : I) (l : Leaf P (subst P w (λ g n → fst (κ g n))) j)
-        → –> (μ-bsd-frm (subst P w (λ g n → fst (κ g n))) j) l  == 
-          –> (μ-bsd-frm w j ∘e (subst-leaf-eqv P w (λ g n → fst (κ g n)) j) ⁻¹) l
+        → –> (μ-bsd-frm B (subst P w (λ g n → fst (κ g n))) j) l  == 
+          –> (μ-bsd-frm B w j ∘e (subst-leaf-eqv P w (λ g n → fst (κ g n)) j) ⁻¹) l
             [ (λ x → Param P x j) ↓ μ-subst-invar w κ ]
 
       μ-subst-leaf-inv-lem : {i j : I} (f : Op P i) (ϕ : Decor P f (W P))
         → (w : W P i) (α : Frame P w f) (r : R (i , f) (w , α))
         → (κ : (g : Ops P) → Node P (nd (f , ϕ)) g → Op (P // R) g)
         → (l : Leaf P (graft P w (λ j' l' → subst P (ϕ j' (–> (α j') l')) (λ g n → fst (κ g (inr (j' , (–> (α j') l') , n))) ))) j)
-        → –> (μ-bsd-frm (graft P w (λ j' l' → subst P (ϕ j' (–> (α j') l')) (λ g n → fst (κ g (inr (j' , (–> (α j') l') , n))) ))) j) l ==
+        → –> (μ-bsd-frm B (graft P w (λ j' l' → subst P (ϕ j' (–> (α j') l')) (λ g n → fst (κ g (inr (j' , (–> (α j') l') , n))) ))) j) l ==
           (let (k , l₀ , l₁) = graft-leaf-from P w (λ j' l' → subst P (ϕ j' (–> (α j') l')) (λ g n → fst (κ g (inr (j' , –> (α j') l' , n))))) j l
-            in –> (γ-frm f (λ k p → μ-bsd (ϕ k p)) j) (k , (–> (α k) l₀) ,
-                 –> (μ-bsd-frm (ϕ k (–> (α k) l₀)) j) (subst-leaf-from P (ϕ k (–> (α k) l₀)) (λ g n → fst (κ g (inr (k , (–> (α k) l₀) , n)))) j l₁)))
+            in –> (γ-frm B f (λ k p → μ-bsd B (ϕ k p)) j) (k , (–> (α k) l₀) ,
+                 –> (μ-bsd-frm B (ϕ k (–> (α k) l₀)) j) (subst-leaf-from P (ϕ k (–> (α k) l₀)) (λ g n → fst (κ g (inr (k , (–> (α k) l₀) , n)))) j l₁)))
             [ (λ x → Param P x j) ↓ μ-subst-inv-lem f ϕ ((w , α) , r) κ ]
 
       μ-lf-invar (lf i) κ j l = idp
@@ -313,25 +315,25 @@ module Biased where
       μ-subst-leaf-inv-lem ._ ϕ w ._ idp κ l = 
         let κp j p g n = κ g (inr (j , p , n))
             ψp j p = subst P (ϕ j p) (λ g n → fst (κp j p g n))
-            ψ j l = ψp j (–> (μ-bsd-frm w j) l)
+            ψ j l = ψp j (–> (μ-bsd-frm B w j) l)
             (k , l₀ , l₁) = graft-leaf-from P w ψ _ l
-            p₀ = –> (μ-bsd-frm w k) l₀
-            p₁ = –> (μ-bsd-frm (ψp k p₀) _) l₁
-            Q x = Param P (μ-bsd (ψp k x)) _
-            Q' x = Param P (μ-bsd (ψp k (–> (μ-bsd-frm w k) x))) _
+            p₀ = –> (μ-bsd-frm B w k) l₀
+            p₁ = –> (μ-bsd-frm B (ψp k p₀) _) l₁
+            Q x = Param P (μ-bsd B (ψp k x)) _
+            Q' x = Param P (μ-bsd B (ψp k (–> (μ-bsd-frm B w k) x))) _
 
-            lem₀ = transport! Q' (<–-inv-l (μ-bsd-frm w k) l₀) p₁
-                     =⟨ transp!-ap Q (–> (μ-bsd-frm w k)) (<–-inv-l (μ-bsd-frm w k) l₀) p₁ ⟩
-                   transport! Q (ap (–> (μ-bsd-frm w k)) (<–-inv-l (μ-bsd-frm w k) l₀)) p₁
-                     =⟨ <–-inv-adj (μ-bsd-frm w k) l₀ |in-ctx (λ x → transport! Q x p₁) ⟩ 
-                   transport! Q (<–-inv-r (μ-bsd-frm w k) p₀) p₁ ∎
+            lem₀ = transport! Q' (<–-inv-l (μ-bsd-frm B w k) l₀) p₁
+                     =⟨ transp!-ap Q (–> (μ-bsd-frm B w k)) (<–-inv-l (μ-bsd-frm B w k) l₀) p₁ ⟩
+                   transport! Q (ap (–> (μ-bsd-frm B w k)) (<–-inv-l (μ-bsd-frm B w k) l₀)) p₁
+                     =⟨ <–-inv-adj (μ-bsd-frm B w k) l₀ |in-ctx (λ x → transport! Q x p₁) ⟩ 
+                   transport! Q (<–-inv-r (μ-bsd-frm B w k) p₀) p₁ ∎
 
-            lem : transport! Q' (<–-inv-l (μ-bsd-frm w k) l₀) p₁ == p₁ [ Q ↓ <–-inv-r (μ-bsd-frm w k) p₀ ]
-            lem = lem₀ ∙ᵈ to-transp!!-↓ Q (<–-inv-r (μ-bsd-frm w k) p₀) p₁ 
+            lem : transport! Q' (<–-inv-l (μ-bsd-frm B w k) l₀) p₁ == p₁ [ Q ↓ <–-inv-r (μ-bsd-frm B w k) p₀ ]
+            lem = lem₀ ∙ᵈ to-transp!!-↓ Q (<–-inv-r (μ-bsd-frm B w k) p₀) p₁ 
             
         in μ-graft-lf-inv w ψ _ l ∙ᵈ
            ↓-γ-param' B (↓-ap-in (λ x → Param P x _)
-                        (λ x → μ-bsd (ψp k x))
+                        (λ x → μ-bsd B (ψp k x))
                         lem ∙ᵈ
            μ-lf-invar (ϕ k p₀) (κp k p₀) _ l₁)
 
@@ -340,10 +342,10 @@ module Biased where
       --
 
       μ-bsd-flatn-invar : {i : I} {f : Op P i} (pd : W (P // R) (i , f))
-        → μ-bsd (flatn R pd) == f
+        → μ-bsd B (flatn R pd) == f
         
       μ-bsd-flatn-invar-frm : {f : Ops P} (pd : W (P // R) f)
-        → μ-bsd-frm (flatn R pd) == flatn-frm R pd [ Frame P (flatn R pd) ↓ μ-bsd-flatn-invar pd ]
+        → μ-bsd-frm B (flatn R pd) == flatn-frm R pd [ Frame P (flatn R pd) ↓ μ-bsd-flatn-invar pd ]
 
       μ-bsd-flatn-invar (lf (i , f)) = unit-l f
       μ-bsd-flatn-invar (nd (((w , ._) , idp) , κ)) =
@@ -354,7 +356,7 @@ module Biased where
 
       μ-bsd-flatn-invar-frm (lf (i , f)) = ↓-Op-Frame-in P (unit-l f) lem
         where lem : (j : I) (l : Leaf P (corolla P f) j)
-                → –> (μ-bsd-frm (corolla P f) j) l ==
+                → –> (μ-bsd-frm B (corolla P f) j) l ==
                   –> (corolla-frm P f j) l [ (λ x → Param P x j) ↓ unit-l f ]
               lem j (k , p , idp) = unit-l-frm f k p
 

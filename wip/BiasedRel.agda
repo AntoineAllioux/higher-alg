@@ -4,7 +4,9 @@ open import HoTT
 open import Util
 open import Polynomial
 open import Grafting
-open import Biased
+open import PolyMagma
+open import PolyMonad
+open import Slice
 
 module wip.BiasedRel {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
 
@@ -13,7 +15,7 @@ module wip.BiasedRel {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
   open import wip.SubstUnits P
   open BiasedMgm
   open BiasedLaws
-
+{-
   -- The extra information required from a relation in order that we
   -- can construct a biased multiplication on the slice by R.
   record BiasedRel : Type ℓ where
@@ -24,10 +26,10 @@ module wip.BiasedRel {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
       γ-rel : (f : Ops P) (wα : InFrame P f) (r : R f wα)
         → (κ : Decor (P // R) (wα , r) (Op (P // R)))
         → R f (subst-γ f wα (λ g n → fst (κ g n)))
-
+-}
   open BiasedRel
   
-  BiasedRelToMgm : BiasedRel → BiasedMgm (P // R)
+  BiasedRelToMgm : BiasedRel P R → BiasedMgm (P // R)
   η (BiasedRelToMgm SRel) f =
     subst-η f , η-rel SRel f
   η-frm (BiasedRelToMgm SRel) =
@@ -39,7 +41,7 @@ module wip.BiasedRel {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
     let κ' g n = fst (κ g n)
     in subst-node-eqv w κ' g
 
-  record BiasedRelLaws (SRel : BiasedRel) : Type ℓ where
+  record BiasedRelLaws (SRel : BiasedRel P R) : Type ℓ where
     field
 
       subst-unit-l-rel : {i : I} {f : Op P i}
@@ -68,8 +70,8 @@ module wip.BiasedRel {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
 
   open BiasedRelLaws
 
-  BiasedLawsToLaws : (SRel : BiasedRel) (SLaws : BiasedRelLaws SRel)
-    → BiasedLaws (P // R) (BiasedRelToMgm SRel)
+  BiasedLawsToLaws : (SRel : BiasedRel P R) (SLaws : BiasedRelLaws SRel)
+    → BiasedLaws (BiasedRelToMgm SRel)
   unit-l (BiasedLawsToLaws SRel SLaws) ((w , α) , r) =
     pair= (pair= (subst-unit-l w) (subst-unit-l-frm w α))
           (subst-unit-l-rel SLaws w α r)

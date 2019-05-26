@@ -10,11 +10,6 @@ open import Substitution
 -- Slicing a polynomial by a relation, etc.
 module Slice where
 
-  -- The slice of a polynomial by a relation
-  _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
-  Op (P // R) f = Σ (InFrame P f) (R f)
-  Param (P // R) ((w , _) , _) = Node P w
-
   -- Forgetting from the slice
   module _ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
 
@@ -66,13 +61,13 @@ module Slice where
 
     -- Exactly.  And this is the new version of being
     -- subdivision invariant.
-    SubInvar : Type ℓ
-    SubInvar = {f : Ops P} (pd : W (P // R) f)
+    SubInvarRel : Type ℓ
+    SubInvarRel = {f : Ops P} (pd : W (P // R) f)
       → R f (μ-subst P (W↓ pd))
 
-    SlcMgm : SubInvar → PolyMagma (P // R)
-    μ (SlcMgm Ψ) pd = μ-subst P (W↓ pd) , Ψ pd
-    μ-frm (SlcMgm Ψ) pd = Frame↑ {wαr = μ-subst P (W↓ pd) , Ψ pd} {pd = pd} (μ-frm-subst P (W↓ pd))
+    SlcMgmRel : SubInvarRel → PolyMagma (P // R)
+    μ (SlcMgmRel Ψ) pd = μ-subst P (W↓ pd) , Ψ pd
+    μ-frm (SlcMgmRel Ψ) pd = Frame↑ {wαr = μ-subst P (W↓ pd) , Ψ pd} {pd = pd} (μ-frm-subst P (W↓ pd))
 
     -- The extra information required from a relation in order that we
     -- can construct a biased multiplication on the slice by R.
@@ -89,10 +84,10 @@ module Slice where
 
     -- A biased relation becomes subdivision invariant
     -- by iteration.
-    ToSubInvar : BiasedRel → SubInvar
-    ToSubInvar Ψ (lf f) = η-rel Ψ f
-    ToSubInvar Ψ (nd ((wα , r) , ϕ)) =
-      γ-rel Ψ _ wα r (λ g n → μ-subst P (W↓ (ϕ g n)) , ToSubInvar Ψ (ϕ g n))
+    ToSubInvarRel : BiasedRel → SubInvarRel
+    ToSubInvarRel Ψ (lf f) = η-rel Ψ f
+    ToSubInvarRel Ψ (nd ((wα , r) , ϕ)) =
+      γ-rel Ψ _ wα r (λ g n → μ-subst P (W↓ (ϕ g n)) , ToSubInvarRel Ψ (ϕ g n))
 
   -- Proving subdivision invariance for a biased magma
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (B : BiasedMgm P) where
@@ -315,5 +310,5 @@ module Slice where
 
 
       -- Subdivision invariance of the biased relation
-      LawsInvar : SubInvar P ⟪ BsdMgm B ⟫
-      LawsInvar = ToSubInvar P ⟪ BsdMgm B ⟫ LawsRel
+      LawsInvar : SubInvarRel P ⟪ BsdMgm B ⟫
+      LawsInvar = ToSubInvarRel P ⟪ BsdMgm B ⟫ LawsRel

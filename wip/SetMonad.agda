@@ -124,20 +124,6 @@ module wip.SetMonad where
     out-frm=out-frm' : out-frm == out-frm'
     out-frm=out-frm' = pair= (pair= (pair= w=w fr=fr') α=α') fr↑=fr↑'
 
-    
-    foo : ¬ ({f : Ops U} (pd : W (U // ⟪ U-mgm ⟫) f) → is-set (OutFrame (U // ⟪ U-mgm ⟫) pd))
-    foo f = {!!}
-      
-
-
-
-  module _ {ℓ} {I : Type ℓ} (P : Poly I) (mgm : PolyMagma P) (M : SetMonad P mgm) where
-
-    
-
-    --foo : {f : Ops P} (pd : W (P // ⟪ mgm ⟫) f) → is-set (OutFrame (P // ⟪ mgm ⟫) pd)
-    --foo pd = {!!}
-
 {-
 
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (B : BiasedMgm P) where
