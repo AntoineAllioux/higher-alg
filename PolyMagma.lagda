@@ -1,3 +1,4 @@
+\begin{code}
 {-# OPTIONS --without-K --rewriting #-}
 
 open import HoTT
@@ -7,11 +8,19 @@ open import Polynomial
 -- Polynomial Magmas and Slicing
 module PolyMagma where
 
+\end{code}
+
+%<*mgm>
+\begin{code}
   record PolyMagma {ℓ} {I : Type ℓ} (P : Poly I) : Type ℓ where
     constructor mgm
     field
       μ : {i : I} (w : W P i) → Op P i
       μ-frm : {i : I} (w : W P i) → Frame P w (μ w)
+\end{code}
+%</mgm>
+
+\begin{code}
 
   open PolyMagma public
 
@@ -138,3 +147,4 @@ module PolyMagma where
     BsdMgm : PolyMagma P
     μ BsdMgm = μ-bsd
     μ-frm BsdMgm = μ-bsd-frm
+\end{code}

@@ -1,3 +1,4 @@
+\begin{code}
 {-# OPTIONS --without-K --rewriting #-}
 
 open import HoTT
@@ -13,12 +14,18 @@ open import Util
 --
 
 module Polynomial where
+\end{code}
 
+%<*poly>
+\begin{code}
   record Poly {ℓ} (I : Type ℓ) : Type (lsucc ℓ) where
     field
       Op : I → Type ℓ
       Param : {i : I} → Op i → I → Type ℓ
+\end{code}
+%</poly>
 
+\begin{code}
   open Poly public
 
   Ops : ∀ {ℓ} {I : Type ℓ} (P : Poly I) → Type ℓ
@@ -32,20 +39,33 @@ module Polynomial where
     → {i : I} (f : Op P i) (X : I → Type ℓ)
     → Type ℓ
   Decor P f X = ∀ j → Param P f j → X j
+\end{code}
 
+%<*interp>
+\begin{code}
   ⟦_⟧ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) → (I → Type ℓ) → I → Type ℓ
   ⟦ P ⟧ X i = Σ (Op P i) (λ f → ∀ j → Param P f j → X j)
+\end{code}
+%</interp>
 
+\begin{code}
   ⟦_⟧f : ∀ {ℓ} {I : Type ℓ} (P : Poly I) {X Y : I → Type ℓ}
     → (ψ : (i : I) → X i → Y i)
     → (i : I) → ⟦ P ⟧ X i → ⟦ P ⟧ Y i
   ⟦ P ⟧f ψ i (f , ϕ)= f , λ j p → ψ j (ϕ j p)
 
   module _ {ℓ} {I : Type ℓ} (P : Poly I) where
+\end{code}
 
+%<*tree>
+\begin{code}
     data W : I → Type ℓ where
       lf : (i : I) → W i
       nd : {i : I} → ⟦ P ⟧ W i → W i
+\end{code}
+%</tree>
+
+\begin{code}
 
     Leaf : {i : I} (w : W i) → I → Type ℓ
     Leaf (lf i) j = i == j
@@ -192,3 +212,4 @@ module Polynomial where
     ↓-Node-there-in H {g} j p {n₀} {n₁} q = ↓-Node-there-in₀ (Decor-== H) j p
       (transport (λ y → n₀ == n₁ [ (λ x → Node P x g) ↓ y ]) (Decor-==-β H j p) q)
 
+\end{code}
