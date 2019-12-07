@@ -66,7 +66,6 @@ module Polynomial where
 %</tree>
 
 \begin{code}
-
     Leaf : {i : I} (w : W i) → I → Type ℓ
     Leaf (lf i) j = i == j
     Leaf (nd (f , ϕ)) j = Σ I (λ k → Σ (Param P f k) (λ p → Leaf (ϕ k p) j))
@@ -74,19 +73,37 @@ module Polynomial where
     Node : {i : I} (w : W i) → Ops P → Type ℓ
     Node (lf i) p = Lift ⊥
     Node (nd {i} (f , ϕ)) jg = ((i , f) == jg) ⊔ Σ I (λ k → Σ (Param P f k) (λ p → Node (ϕ k p) jg))
+\end{code}
 
+%<*frame>
+\begin{code}
     Frame : {i : I} (w : W i) (f : Op P i) → Type ℓ
     Frame w f = (j : I) → Leaf w j ≃ Param P f j
+\end{code}
+%</frame>
 
+%<*inframe>
+\begin{code}
     InFrame : Ops P → Type ℓ
     InFrame (i , f) = Σ (W i) (λ w → Frame w f)
+\end{code}
+%</inframe>
 
+%<*outframe>
+\begin{code}
     OutFrame : {i : I} → W i → Type ℓ
     OutFrame {i} w = Σ (Op P i) (Frame w)
+\end{code}
+%</outframe>
 
+%<*polyrel>
+\begin{code}
     PolyRel : Type (lsucc ℓ)
     PolyRel = (f : Ops P) → InFrame f → Type ℓ
+\end{code}
+%</polyrel>
 
+\begin{code}
     corolla : {i : I} (f : Op P i) → W i
     corolla {i} f = nd (f , λ j p → lf j)
 

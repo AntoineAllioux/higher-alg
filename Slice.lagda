@@ -1,3 +1,4 @@
+\begin{code}
 {-# OPTIONS --without-K --rewriting #-}
 
 open import HoTT
@@ -11,10 +12,17 @@ open import Substitution
 module Slice where
 
   -- The slice of a polynomial by a relation
+\end{code}
+
+%<*slice>
+\begin{code}
   _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
   Op (P // R) f = Σ (InFrame P f) (R f)
   Param (P // R) ((w , _) , _) = Node P w
+\end{code}
+%</slice>
 
+\begin{code}
   -- Forgetting from the slice
   module _ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) where
 
@@ -317,3 +325,4 @@ module Slice where
       -- Subdivision invariance of the biased relation
       LawsInvar : SubInvar P ⟪ BsdMgm B ⟫
       LawsInvar = ToSubInvar P ⟪ BsdMgm B ⟫ LawsRel
+\end{code}
