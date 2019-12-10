@@ -8,6 +8,9 @@ open import Substitution
 open import PolyMagma
 
 module PolyMonad where
+  _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
+  Op (P // R) f = Σ (InFrame P f) (R f)
+  Param (P // R) ((w , _) , _) = Node P w
 
   
 
@@ -16,21 +19,22 @@ module PolyMonad where
   Param (P // R) ((w , _) , _) = Node P w
 
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (R : PolyRel P) where
-  \end{code}
+\end{code}
 
-  %<*flatn>
-  \begin{code}
+%<*flatn>
+\begin{code}
     flatn : {i : I} {f : Op P i} → W (P // R) (i , f) → W P i
-  \end{code}
-  %</flatn>
+\end{code}
+%</flatn>
 
-  %<*flatn-frm>
-  \begin{code}
-    flatn-frm : {i : I} {f : Op P i} (w : W (P // R) (i , f)) → Frame P (flatn w) f
-  \end{code}
-  %</flatn-frm>
+%<*flatn-frm>
+\begin{code}
+    flatn-frm : {i : I} {f : Op P i} (w : W (P // R) (i , f)) 
+      → Frame P (flatn w) f
+\end{code}
+%</flatn-frm>
 
-  \begin{code}
+\begin{code}
     flatn (lf (i , f)) = corolla P f
     flatn (nd (((w , α) , _) , κ)) = 
       let κ' g n = flatn (κ g n) , flatn-frm (κ g n)
