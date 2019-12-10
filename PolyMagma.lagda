@@ -25,9 +25,17 @@ module PolyMagma where
   open PolyMagma public
 
   -- The relation induced by a magma
-  ⟪_⟫ : ∀ {ℓ} {I : Type ℓ} {P : Poly I} (M : PolyMagma P) → PolyRel P
-  ⟪_⟫ {P = P} M (i , f) (w , α) = Path {A = OutFrame P w}
-    (μ M w , μ-frm M w) (f , α)
+  module _ {ℓ} {I : Type ℓ} {P : Poly I} where
+  \end{code}
+
+  %<*mgm-rel>
+  \begin{code}
+    ⟪_⟫ : (M : PolyMagma P) → PolyRel P
+    ⟪ M ⟫ (i , f) (w , α) = (μ M w , μ-frm M w) == (f , α)
+  \end{code}
+  %</mgm-rel>
+
+  \begin{code}
 
   -- A biased version
   record BiasedMgm {ℓ} {I : Type ℓ} (P : Poly I) : Type ℓ where

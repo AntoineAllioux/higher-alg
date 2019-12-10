@@ -1,17 +1,36 @@
+\begin{code}
 {-# OPTIONS --without-K --rewriting #-}
 
 open import HoTT
 open import Util
 open import Polynomial
 open import Substitution
+open import PolyMagma
 
 module PolyMonad where
 
+  
+
+  _//_ : ∀ {ℓ} {I : Type ℓ} (P : Poly I) (R : PolyRel P) → Poly (Ops P)
+  Op (P // R) f = Σ (InFrame P f) (R f)
+  Param (P // R) ((w , _) , _) = Node P w
+
   module _ {ℓ} {I : Type ℓ} {P : Poly I} (R : PolyRel P) where
+  \end{code}
 
+  %<*flatn>
+  \begin{code}
     flatn : {i : I} {f : Op P i} → W (P // R) (i , f) → W P i
-    flatn-frm : {i : I} {f : Op P i} (w : W (P // R) (i , f)) → Frame P (flatn w) f
+  \end{code}
+  %</flatn>
 
+  %<*flatn-frm>
+  \begin{code}
+    flatn-frm : {i : I} {f : Op P i} (w : W (P // R) (i , f)) → Frame P (flatn w) f
+  \end{code}
+  %</flatn-frm>
+
+  \begin{code}
     flatn (lf (i , f)) = corolla P f
     flatn (nd (((w , α) , _) , κ)) = 
       let κ' g n = flatn (κ g n) , flatn-frm (κ g n)
@@ -60,11 +79,18 @@ module PolyMonad where
     SubInvar = {f : Ops P} (pd : W (P // R) f) → R f (flatn pd , flatn-frm pd)
 
   -- An invariant relation induces a magma on its slice
-  SlcMgm : ∀ {ℓ} {I : Type ℓ} {P : Poly I} {R : PolyRel P}
-    → SubInvar R → PolyMagma (P // R)
-  μ (SlcMgm {R = R} Ψ) pd = (flatn R pd , flatn-frm R pd) , Ψ pd
-  μ-frm (SlcMgm {R = R} Ψ) pd = bd-frm R pd
+  \end{code}
 
+  %<*slc-mgm>
+  \begin{code}
+  module _ {ℓ} {I : Type ℓ} {P : Poly I} {R : PolyRel P} where
+    SlcMgm : SubInvar R → PolyMagma (P // R)
+    μ (SlcMgm Ψ) pd = (flatn R pd , flatn-frm R pd) , Ψ pd
+    μ-frm (SlcMgm Ψ) pd = bd-frm R pd
+  \end{code}
+  %<\slc-mgm>
+
+  \begin{code}
   _⇙_ : ∀ {ℓ} {I : Type ℓ} {P : Poly I}
     → (M : PolyMagma P) (Ψ : SubInvar ⟪ M ⟫)
     → PolyMagma (P // ⟪ M ⟫)
@@ -86,3 +112,4 @@ module PolyMonad where
       Coh : CohStruct Mgm
 
   open PolyMonad public
+\end{code}
